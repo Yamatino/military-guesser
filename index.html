@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Military Asset Guesser</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1 class="logo">Military Asset Guesser</h1>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">Streak</span>
+          <span id="streak" class="stat-value">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Best</span>
+          <span id="high-score" class="stat-value">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Accuracy</span>
+          <span id="accuracy" class="stat-value">0%</span>
+        </div>
+      </div>
+      <button id="btn-leaderboard" class="btn btn-secondary">Leaderboard</button>
+    </header>
+
+    <main class="game">
+      <div class="lives-bar" id="lives-bar" aria-label="Lives">
+        <span class="life"></span><span class="life"></span><span class="life"></span><span class="life"></span><span class="life"></span>
+      </div>
+
+      <div class="image-stage-wrap">
+        <div class="image-stage">
+          <img id="asset-image" alt="Military asset" />
+          <span id="category-badge" class="category-badge"></span>
+        </div>
+      </div>
+
+      <div class="hints" id="hints"></div>
+
+      <div class="controls">
+        <div class="autocomplete-wrap">
+          <input
+            id="guess-input"
+            type="text"
+            placeholder="Type asset name..."
+            autocomplete="off"
+            aria-label="Guess input"
+            aria-autocomplete="list"
+            aria-controls="autocomplete-list"
+          />
+          <ul id="autocomplete-list" class="autocomplete-list" role="listbox"></ul>
+        </div>
+        <button id="submit-btn" class="btn btn-primary">Submit Guess</button>
+      </div>
+
+      <div class="history" id="history" aria-live="polite"></div>
+    </main>
+  </div>
+
+  <!-- Setup Overlay -->
+  <div id="setup" class="setup-overlay open">
+    <div class="setup-card">
+      <h2 class="setup-title">Game Setup</h2>
+
+      <div class="setup-section">
+        <div class="setup-label">Mode</div>
+        <div class="radio-group">
+          <label class="radio-chip"><input type="radio" name="mode" value="classic" checked /> Classic</label>
+          <label class="radio-chip"><input type="radio" name="mode" value="hard" /> Hard</label>
+          <label class="radio-chip"><input type="radio" name="mode" value="sudden" /> Sudden Death</label>
+        </div>
+      </div>
+
+      <div class="setup-section">
+        <div class="setup-label">Categories</div>
+        <div class="chip-group" id="category-chips">
+          <button type="button" class="chip" data-value="Land">Land</button>
+          <button type="button" class="chip" data-value="Air">Air</button>
+          <button type="button" class="chip" data-value="Sea">Sea</button>
+          <button type="button" class="chip" data-value="Infantry">Infantry</button>
+        </div>
+      </div>
+
+      <div class="setup-section">
+        <div class="setup-label">Eras</div>
+        <div class="chip-group" id="era-chips">
+          <button type="button" class="chip" data-value="Pre-1950">Pre-1950</button>
+          <button type="button" class="chip" data-value="Cold War">Cold War</button>
+          <button type="button" class="chip" data-value="Modern">Modern</button>
+          <button type="button" class="chip" data-value="Contemporary">Contemporary</button>
+        </div>
+      </div>
+
+      <div class="setup-section">
+        <label class="toggle-row">
+          <input type="checkbox" id="hidden-mode-toggle" />
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">Hidden Mode (blurred image)</span>
+        </label>
+      </div>
+
+      <div id="setup-warning" class="setup-warning hidden"></div>
+
+      <button id="start-btn" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Start Game</button>
+    </div>
+  </div>
+
+  <!-- Game Over / Generic Modal -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <h2 id="modal-title" class="modal-title"></h2>
+      <p id="modal-body" class="modal-body"></p>
+      <div class="btn-row" style="justify-content: center;">
+        <button id="modal-action" class="btn btn-primary"></button>
+        <button id="modal-menu" class="btn btn-secondary">Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard Modal -->
+  <div id="leaderboard-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="lb-title">
+    <div class="modal-card" style="max-width: 520px;">
+      <h2 id="lb-title" class="modal-title">Leaderboard</h2>
+
+      <div class="lb-tabs">
+        <button class="lb-tab active" data-tab="top10">Top 10</button>
+        <button class="lb-tab" data-tab="cats">Category Bests</button>
+      </div>
+
+      <div id="lb-top10" class="lb-panel">
+        <div id="lb-list" class="lb-list"></div>
+      </div>
+
+      <div id="lb-cats" class="lb-panel hidden">
+        <div id="lb-cat-grid" class="lb-cat-grid"></div>
+      </div>
+
+      <div class="btn-row" style="justify-content: center; margin-top: 18px;">
+        <button id="lb-close" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

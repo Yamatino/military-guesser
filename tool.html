@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asset Manager | Military Guesser</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .tool-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+    .tool-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .drop-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 40px 20px; text-align: center; color: var(--text-muted); cursor: pointer; transition: border-color .2s, background .2s; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: rgba(107,142,35,.08); }
+    .preview-img { max-width: 100%; max-height: 240px; margin-top: 12px; border-radius: 6px; display: block; margin-left: auto; margin-right: auto; }
+    .asset-list { max-height: 420px; overflow-y: auto; }
+    .asset-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .asset-row:last-child { border-bottom: none; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+    .status-ok { background: var(--success); }
+    .status-missing { background: var(--danger); }
+    .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-secondary { background: var(--panel-2); color: var(--text); }
+    .btn-secondary:hover { background: #2f3540; }
+    .progress { color: var(--text-muted); font-size: .9rem; margin-bottom: 8px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: .85rem; color: var(--text-muted); margin-bottom: 4px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; }
+    .hidden { display: none !important; }
+    .tag { font-size: .75rem; padding: 2px 8px; border-radius: 4px; background: var(--panel-2); color: var(--text-muted); }
+    .era-tag { font-size: .7rem; padding: 1px 6px; border-radius: 4px; background: rgba(107,142,35,.15); color: var(--accent-2); margin-left: 6px; }
+    @media (max-width: 900px) { .tool-layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1 class="logo">Asset Manager</h1>
+      <div class="stats">
+        <div class="stat"><span class="stat-label">Total</span><span id="total-count" class="stat-value">0</span></div>
+        <div class="stat"><span class="stat-label">Missing</span><span id="missing-count" class="stat-value">0</span></div>
+      </div>
+    </header>
+
+    <main class="tool-layout">
+      <section>
+        <div id="wizard-panel" class="tool-card">
+          <div class="progress" id="wizard-progress">Scanning...</div>
+          <h2 id="wizard-title" style="margin-bottom: 6px;">Checking assets...</h2>
+          <p id="wizard-meta" style="color: var(--text-muted); margin-bottom: 16px;"></p>
+
+          <div id="wizard-drop" class="drop-zone">
+            <div>Drop image here or click to browse</div>
+            <input type="file" id="file-input" accept="image/*" style="display: none;">
+          </div>
+
+          <div class="form-group" style="margin-top: 14px; margin-bottom: 0;">
+            <label>Or paste an image URL</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="url-input" placeholder="https://..." style="flex: 1;">
+              <button type="button" id="btn-load-url" class="btn btn-secondary" style="padding: 10px 14px;">Load</button>
+            </div>
+            <div id="url-error" class="hidden" style="color: var(--danger); font-size: .85rem; margin-top: 6px;"></div>
+            <div id="url-fallback" class="hidden" style="margin-top: 6px;">
+              <a href="#" id="fallback-link" target="_blank" style="color: var(--accent-2); font-size: .85rem;">Open image in new tab to save manually</a>
+            </div>
+          </div>
+
+          <div id="wiki-results" class="hidden" style="margin-top: 16px;">
+            <div style="font-size: .8rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">Wikimedia Suggestions</div>
+            <div id="wiki-thumbs" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;"></div>
+            <div id="wiki-status" style="color: var(--text-muted); font-size: .85rem; padding: 4px 0;"></div>
+          </div>
+
+          <div id="wizard-preview-wrap" class="hidden" style="margin-top: 12px;">
+            <img id="wizard-preview" class="preview-img" alt="Preview">
+            <div class="btn-row">
+              <button id="btn-download" class="btn btn-primary">Download Image</button>
+              <button id="btn-skip" class="btn btn-secondary">Skip</button>
+            </div>
+          </div>
+
+          <div id="wizard-done" class="hidden" style="text-align: center; padding: 30px 0;">
+            <h3 style="color: var(--success);">All images present!</h3>
+            <p style="color: var(--text-muted);">You can still add new assets on the right.</p>
+          </div>
+        </div>
+
+        <div class="tool-card" style="margin-top: 16px;">
+          <h3 style="margin-bottom: 10px;">Database File</h3>
+          <p style="color: var(--text-muted); font-size: .9rem; margin-bottom: 12px;">
+            If you added new assets below, download the updated <code>db.js</code> and overwrite <code>js/db.js</code>.
+          </p>
+          <button id="btn-download-db" class="btn btn-primary">Download db.js</button>
+        </div>
+      </section>
+
+      <aside>
+        <div class="tool-card">
+          <h3 style="margin-bottom: 12px;">Add New Asset</h3>
+          <form id="add-form">
+            <div class="form-group"><label>Name</label><input type="text" id="new-name" required></div>
+            <div class="form-group"><label>Category</label>
+              <select id="new-category" required>
+                <option>Land</option><option>Air</option><option>Sea</option><option>Infantry</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Difficulty</label>
+              <select id="new-difficulty" required>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Year</label><input type="number" id="new-year" required></div>
+            <div class="form-group"><label>Country</label><input type="text" id="new-country" required></div>
+            <div class="form-group"><label>Image filename</label><input type="text" id="new-image" placeholder="e.g. my_tank.jpg" required></div>
+            <div class="form-group"><label>Aliases (comma separated)</label><input type="text" id="new-aliases" placeholder="Alias 1, Alias 2"></div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Add to Database</button>
+          </form>
+        </div>
+
+        <div class="tool-card" style="margin-top: 16px;">
+          <h3 style="margin-bottom: 12px;">Asset List</h3>
+          <div class="form-group" style="margin-bottom: 10px;">
+            <input type="text" id="list-search" placeholder="Search assets..." style="width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px;">
+          </div>
+          <div class="asset-list" style="max-height: 180px; overflow-y: auto; margin-bottom: 12px;">
+            <div style="font-size: .8rem; color: var(--danger); margin-bottom: 6px; font-weight: 600;">Missing Images</div>
+            <div id="asset-list-missing"></div>
+          </div>
+          <div class="asset-list" style="max-height: 180px; overflow-y: auto;">
+            <div style="font-size: .8rem; color: var(--success); margin-bottom: 6px; font-weight: 600;">Images Ready</div>
+            <div id="asset-list-ready"></div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script>
+  (function(){
+    let workingDb = JSON.parse(JSON.stringify(db));
+    const IMAGE_BASE = 'assets/images/';
+
+    const wizardPanel = document.getElementById('wizard-panel');
+    const wizardProgress = document.getElementById('wizard-progress');
+    const wizardTitle = document.getElementById('wizard-title');
+    const wizardMeta = document.getElementById('wizard-meta');
+    const wizardDrop = document.getElementById('wizard-drop');
+    const fileInput = document.getElementById('file-input');
+    const urlInput = document.getElementById('url-input');
+    const btnLoadUrl = document.getElementById('btn-load-url');
+    const urlError = document.getElementById('url-error');
+    const urlFallback = document.getElementById('url-fallback');
+    const fallbackLink = document.getElementById('fallback-link');
+    const previewWrap = document.getElementById('wizard-preview-wrap');
+    const previewImg = document.getElementById('wizard-preview');
+    const btnDownload = document.getElementById('btn-download');
+    const btnSkip = document.getElementById('btn-skip');
+    const wizardDone = document.getElementById('wizard-done');
+    const wikiResults = document.getElementById('wiki-results');
+    const wikiThumbs = document.getElementById('wiki-thumbs');
+    const wikiStatus = document.getElementById('wiki-status');
+    const assetListMissing = document.getElementById('asset-list-missing');
+    const assetListReady = document.getElementById('asset-list-ready');
+    const listSearch = document.getElementById('list-search');
+    const totalCountEl = document.getElementById('total-count');
+    const missingCountEl = document.getElementById('missing-count');
+    const addForm = document.getElementById('add-form');
+    const btnDownloadDb = document.getElementById('btn-download-db');
+
+    let missingAssets = [];
+    let readyAssets = [];
+    let currentIndex = 0;
+    let currentBlobUrl = null;
+
+    function makeRow(item, ok) {
+      const era = getEra(item.year);
+      const div = document.createElement('div');
+      div.className = 'asset-row';
+      div.dataset.name = item.name.toLowerCase();
+      div.innerHTML = `
+        <span style="display:flex;align-items:center;">
+          <span class="status-dot ${ok ? 'status-ok' : 'status-missing'}"></span>
+          <span style="font-size:.9rem;">${escapeHtml(item.name)}</span>
+          <span class="era-tag">${escapeHtml(era)}</span>
+        </span>
+        <span class="tag">${escapeHtml(item.category)}</span>
+      `;
+      return div;
+    }
+
+    function renderLists(filter = '') {
+      const term = filter.trim().toLowerCase();
+      assetListMissing.innerHTML = '';
+      assetListReady.innerHTML = '';
+
+      const missFiltered = missingAssets.filter(item => !term || item.name.toLowerCase().includes(term));
+      const readyFiltered = readyAssets.filter(item => !term || item.name.toLowerCase().includes(term));
+
+      if (missFiltered.length === 0) {
+        assetListMissing.innerHTML = '<div style="color: var(--text-muted); font-size: .85rem; padding: 4px 0;">None missing</div>';
+      } else {
+        missFiltered.forEach(item => assetListMissing.appendChild(makeRow(item, false)));
+      }
+
+      if (readyFiltered.length === 0) {
+        assetListReady.innerHTML = '<div style="color: var(--text-muted); font-size: .85rem; padding: 4px 0;">None ready</div>';
+      } else {
+        readyFiltered.forEach(item => assetListReady.appendChild(makeRow(item, true)));
+      }
+    }
+
+    function getEra(year) {
+      if (year < 1950) return 'Pre-1950';
+      if (year <= 1990) return 'Cold War';
+      if (year <= 2010) return 'Modern';
+      return 'Contemporary';
+    }
+
+    async function scan() {
+      missingAssets = [];
+      readyAssets = [];
+      totalCountEl.textContent = workingDb.length;
+
+      const checks = workingDb.map(item => new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve({item, ok: true});
+        img.onerror = () => resolve({item, ok: false});
+        img.src = IMAGE_BASE + item.image;
+      }));
+
+      const results = await Promise.all(checks);
+      results.forEach(({item, ok}) => {
+        if (ok) readyAssets.push(item);
+        else missingAssets.push(item);
+      });
+
+      missingCountEl.textContent = missingAssets.length;
+      currentIndex = 0;
+      renderLists(listSearch.value);
+      renderWizard();
+    }
+
+    function renderWizard() {
+      if (missingAssets.length === 0) {
+        wizardDrop.classList.add('hidden');
+        previewWrap.classList.add('hidden');
+        wikiResults.classList.add('hidden');
+        wizardDone.classList.remove('hidden');
+        wizardProgress.textContent = '0 missing';
+        wizardTitle.textContent = 'All set!';
+        wizardMeta.textContent = '';
+        return;
+      }
+
+      wizardDone.classList.add('hidden');
+      wizardDrop.classList.remove('hidden');
+      previewWrap.classList.add('hidden');
+      urlInput.value = '';
+      urlError.classList.add('hidden');
+      urlError.textContent = '';
+      urlFallback.classList.add('hidden');
+      currentBlobUrl = null;
+
+      const asset = missingAssets[currentIndex];
+      const era = getEra(asset.year);
+      wizardProgress.textContent = `Missing asset ${currentIndex + 1} of ${missingAssets.length}`;
+      wizardTitle.textContent = asset.name;
+      wizardMeta.innerHTML = `${escapeHtml(asset.category)} • ${escapeHtml(asset.country)} • ${asset.year} • ${escapeHtml(asset.difficulty)} • ${escapeHtml(era)}`;
+      searchWikimedia(asset.name);
+    }
+
+    function nextAsset() {
+      currentIndex++;
+      if (currentIndex >= missingAssets.length) {
+        scan();
+        return;
+      }
+      renderWizard();
+    }
+
+    async function searchWikimedia(query) {
+      wikiThumbs.innerHTML = '';
+      wikiStatus.textContent = 'Searching...';
+      wikiResults.classList.remove('hidden');
+      const endpoint = 'https://commons.wikimedia.org/w/api.php';
+      const params = new URLSearchParams({
+        action: 'query',
+        generator: 'search',
+        gsrnamespace: '6',
+        gsrsearch: query,
+        prop: 'imageinfo',
+        iiprop: 'url|thumburl',
+        iiurlwidth: '200',
+        format: 'json',
+        origin: '*'
+      });
+      try {
+        const res = await fetch(endpoint + '?' + params.toString());
+        const data = await res.json();
+        const pages = data.query ? Object.values(data.query.pages) : [];
+        const results = pages.map(p => {
+          const info = p.imageinfo ? p.imageinfo[0] : null;
+          return info ? { title: p.title, thumb: info.thumburl, url: info.url } : null;
+        }).filter(Boolean);
+        renderWikiResults(results);
+      } catch (e) {
+        wikiStatus.textContent = 'Search failed.';
+        wikiThumbs.innerHTML = '';
+      }
+    }
+
+    function renderWikiResults(results) {
+      wikiThumbs.innerHTML = '';
+      if (results.length === 0) {
+        wikiStatus.textContent = 'No Wikimedia results found.';
+        return;
+      }
+      wikiStatus.textContent = `Found ${results.length} result${results.length === 1 ? '' : 's'}:`;
+      results.forEach(r => {
+        const div = document.createElement('div');
+        div.style.cssText = 'cursor: pointer; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); background: var(--bg);';
+        div.innerHTML = `<img src="${escapeHtml(r.thumb)}" style="width: 100%; height: 80px; object-fit: cover; display: block;" loading="lazy" alt="">`;
+        div.addEventListener('click', () => {
+          urlInput.value = r.url;
+          loadFromUrl(r.url);
+        });
+        wikiThumbs.appendChild(div);
+      });
+    }
+
+    function onFile(file) {
+      if (!file) return;
+      currentBlobUrl = URL.createObjectURL(file);
+      previewImg.src = currentBlobUrl;
+      wizardDrop.classList.add('hidden');
+      wikiResults.classList.add('hidden');
+      urlError.classList.add('hidden');
+      urlFallback.classList.add('hidden');
+      previewWrap.classList.remove('hidden');
+    }
+
+    async function loadFromUrl(url) {
+      urlError.classList.add('hidden');
+      urlFallback.classList.add('hidden');
+      if (!url) return;
+      try {
+        const response = await fetch(url, { mode: 'cors' });
+        if (!response.ok) throw new Error('Failed to fetch image');
+        const blob = await response.blob();
+        currentBlobUrl = URL.createObjectURL(blob);
+        previewImg.src = currentBlobUrl;
+        wizardDrop.classList.add('hidden');
+        wikiResults.classList.add('hidden');
+        previewWrap.classList.remove('hidden');
+      } catch (err) {
+        urlError.textContent = 'Could not fetch image (CORS or invalid URL). You can open it manually.';
+        urlError.classList.remove('hidden');
+        fallbackLink.href = url;
+        urlFallback.classList.remove('hidden');
+      }
+    }
+
+    wizardDrop.addEventListener('click', () => fileInput.click());
+    wizardDrop.addEventListener('dragover', (e) => { e.preventDefault(); wizardDrop.classList.add('dragover'); });
+    wizardDrop.addEventListener('dragleave', () => wizardDrop.classList.remove('dragover'));
+    wizardDrop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      wizardDrop.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        onFile(e.dataTransfer.files[0]);
+      }
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files[0]) {
+        onFile(fileInput.files[0]);
+      }
+    });
+
+    btnLoadUrl.addEventListener('click', () => loadFromUrl(urlInput.value.trim()));
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        loadFromUrl(urlInput.value.trim());
+      }
+    });
+
+    listSearch.addEventListener('input', () => renderLists(listSearch.value));
+
+    btnSkip.addEventListener('click', nextAsset);
+
+    btnDownload.addEventListener('click', () => {
+      if (!currentBlobUrl || !missingAssets[currentIndex]) return;
+      const asset = missingAssets[currentIndex];
+      const a = document.createElement('a');
+      a.href = currentBlobUrl;
+      a.download = asset.image;
+      a.click();
+      nextAsset();
+    });
+
+    addForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('new-name').value.trim();
+      const category = document.getElementById('new-category').value;
+      const difficulty = document.getElementById('new-difficulty').value;
+      const year = parseInt(document.getElementById('new-year').value, 10);
+      const country = document.getElementById('new-country').value.trim();
+      const image = document.getElementById('new-image').value.trim();
+      const aliasesRaw = document.getElementById('new-aliases').value.trim();
+      const aliases = aliasesRaw ? aliasesRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const id = workingDb.length ? Math.max(...workingDb.map(x => x.id)) + 1 : 1;
+
+      workingDb.push({ id, name, category, difficulty, year, country, image, aliases });
+      addForm.reset();
+      scan();
+    });
+
+    btnDownloadDb.addEventListener('click', () => {
+      const content = 'const db = ' + JSON.stringify(workingDb, null, 2) + ';\n';
+      const blob = new Blob([content], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'db.js';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    scan();
+  })();
+  </script>
+</body>
+</html>
