@@ -24,6 +24,8 @@
   const modeRadios = document.getElementsByName("mode");
   const hiddenModeToggle = document.getElementById("hidden-mode-toggle");
   const btnLeaderboard = document.getElementById("btn-leaderboard");
+  const mainMenu = document.getElementById("main-menu");
+  const btnSp = document.getElementById("btn-sp");
   const lbModal = document.getElementById("leaderboard-modal");
   const lbClose = document.getElementById("lb-close");
   const lbTabs = document.querySelectorAll(".lb-tab");
@@ -51,6 +53,9 @@
   let settings = { mode: "classic", categories: new Set(), eras: new Set(), hiddenMode: false };
   let sessionGuesses = 0;
   let sessionFirstCorrect = 0;
+  let mpMode = false;
+  let mpCallbacks = {};
+  let mpLastGuess = null;
 
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -120,13 +125,19 @@
     highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY), 10) || 0;
     highScoreEl.textContent = highScore;
     updateAccuracy();
-    setup.classList.add("open");
     attachSetupListeners();
     modalAction.addEventListener("click", onModalAction);
     modalMenu.addEventListener("click", returnToMenu);
     btnLeaderboard.addEventListener("click", openLeaderboard);
     lbClose.addEventListener("click", closeLeaderboard);
     lbTabs.forEach((tab) => tab.addEventListener("click", () => switchLbTab(tab.dataset.tab)));
+    if (btnSp && mainMenu) {
+      btnSp.addEventListener("click", () => {
+        mainMenu.classList.remove("open");
+        setup.classList.add("open");
+        validateSetup();
+      });
+    }
     document.addEventListener("click", (e) => {
       if (!e.target.closest(".autocomplete-wrap")) closeDropdown();
       if (e.target === lbModal) closeLeaderboard();
@@ -371,6 +382,15 @@
       if (guessInput.value.trim()) shakeInput();
       return;
     }
+    if (mpMode) {
+      if (mpCallbacks.onGuess) mpCallbacks.onGuess(selectedGuess);
+      mpLastGuess = selectedGuess;
+      guessInput.disabled = true;
+      submitBtn.disabled = true;
+      selectedGuess = null;
+      guessInput.value = "";
+      return;
+    }
     const guess = selectedGuess;
     const correct = guess.name === currentAsset.name;
 
@@ -555,6 +575,67 @@
     }
   `;
   document.head.appendChild(style);
+
+  window.GameAPI = {
+    enableMultiplayer(enabled, callbacks) {
+      mpMode = enabled;
+      mpCallbacks = callbacks || {};
+      const spStats = document.getElementById("sp-stats");
+      const mpStatsHeader = document.getElementById("mp-stats-header");
+      const livesBarEl = document.getElementById("lives-bar");
+      const mpHud = document.getElementById("mp-hud");
+      if (spStats) spStats.classList.toggle("hidden", enabled);
+      if (mpStatsHeader) mpStatsHeader.classList.toggle("hidden", !enabled);
+      if (livesBarEl) livesBarEl.classList.toggle("hidden", enabled);
+      if (mpHud) mpHud.classList.toggle("hidden", !enabled);
+    },
+    loadAsset(asset) {
+      currentAsset = asset;
+      selectedGuess = null;
+      guessInput.value = "";
+      guessInput.disabled = false;
+      submitBtn.disabled = false;
+      historyEl.innerHTML = "";
+      activeIndex = -1;
+      wrongCount = 0;
+      pixelLevel = 0;
+      renderHints();
+      renderCategoryBadge();
+      return loadImageObfuscated(IMAGE_BASE_PATH + asset.image).then(() => {
+        assetImage.style.filter = "none";
+      });
+    },
+    addHistoryItem(guess, correct) {
+      addHistory(guess, correct);
+    },
+    setInputDisabled(disabled) {
+      guessInput.disabled = disabled;
+      submitBtn.disabled = disabled;
+    },
+    getCurrentAsset() {
+      return currentAsset;
+    },
+    clearHistory() {
+      historyEl.innerHTML = "";
+    },
+    handleMpGuessResult(correct) {
+      if (!mpLastGuess) {
+        guessInput.disabled = false;
+        submitBtn.disabled = false;
+        return;
+      }
+      if (correct) {
+        addHistory(mpLastGuess, true);
+      } else {
+        wrongCount++;
+        addHistory(mpLastGuess, false);
+        renderHints();
+        guessInput.disabled = false;
+        submitBtn.disabled = false;
+      }
+      mpLastGuess = null;
+    }
+  };
 
   init();
 })();

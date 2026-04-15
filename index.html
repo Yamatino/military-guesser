@@ -10,7 +10,7 @@
   <div class="app">
     <header class="header">
       <h1 class="logo">Military Asset Guesser</h1>
-      <div class="stats">
+      <div class="stats" id="sp-stats">
         <div class="stat">
           <span class="stat-label">Streak</span>
           <span id="streak" class="stat-value">0</span>
@@ -24,10 +24,18 @@
           <span id="accuracy" class="stat-value">0%</span>
         </div>
       </div>
+      <div class="mp-stats hidden" id="mp-stats-header">
+        <div class="mp-round">Round <span id="mp-round-num">1</span> / <span id="mp-round-total">10</span></div>
+      </div>
       <button id="btn-leaderboard" class="btn btn-secondary">Leaderboard</button>
     </header>
 
     <main class="game">
+      <div class="mp-hud hidden" id="mp-hud">
+        <div class="mp-timer-wrap"><div id="mp-timer-bar" class="mp-timer-bar"></div></div>
+        <div class="mp-scores" id="mp-scores"></div>
+      </div>
+
       <div class="lives-bar" id="lives-bar" aria-label="Lives">
         <span class="life"></span><span class="life"></span><span class="life"></span><span class="life"></span><span class="life"></span>
       </div>
@@ -61,8 +69,17 @@
     </main>
   </div>
 
+  <!-- Main Menu -->
+  <div id="main-menu" class="setup-overlay open">
+    <div class="setup-card" style="text-align:center;">
+      <h2 class="setup-title">Military Asset Guesser</h2>
+      <button id="btn-sp" class="btn btn-primary" style="width: 100%; margin-bottom: 12px;">Single Player</button>
+      <button id="btn-mp" class="btn btn-secondary" style="width: 100%;">Multiplayer</button>
+    </div>
+  </div>
+
   <!-- Setup Overlay -->
-  <div id="setup" class="setup-overlay open">
+  <div id="setup" class="setup-overlay">
     <div class="setup-card">
       <h2 class="setup-title">Game Setup</h2>
 
@@ -108,6 +125,80 @@
     </div>
   </div>
 
+  <!-- Multiplayer Menu -->
+  <div id="mp-menu" class="setup-overlay">
+    <div class="setup-card" style="max-width: 420px;">
+      <h2 class="setup-title">Multiplayer</h2>
+      <div class="setup-section">
+        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Your Name</label>
+        <input type="text" id="mp-name" placeholder="Enter your name" maxlength="16" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface, var(--panel-2)); color: var(--text);" />
+      </div>
+      <div class="setup-section">
+        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Lobby Keyword</label>
+        <input type="text" id="mp-keyword" placeholder="e.g. gg" maxlength="12" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface, var(--panel-2)); color: var(--text);" />
+      </div>
+      <div id="mp-error" class="setup-warning hidden"></div>
+      <div style="display: flex; gap: 10px;">
+        <button id="mp-back" class="btn btn-secondary" style="flex: 1;">Back</button>
+        <button id="mp-join" class="btn btn-primary" style="flex: 1;">Join / Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multiplayer Lobby -->
+  <div id="mp-lobby" class="setup-overlay">
+    <div class="setup-card" style="max-width: 560px;">
+      <h2 class="setup-title">Lobby <span id="lobby-keyword-display" style="opacity: .7; font-size: .7em;"></span></h2>
+      <div id="lobby-players" class="lobby-players"></div>
+
+      <div id="host-settings" class="hidden">
+        <div class="setup-section" style="margin-top: 12px;">
+          <div class="setup-label">Categories</div>
+          <div class="chip-group" id="mp-category-chips">
+            <button type="button" class="chip" data-value="Land">Land</button>
+            <button type="button" class="chip" data-value="Air">Air</button>
+            <button type="button" class="chip" data-value="Sea">Sea</button>
+            <button type="button" class="chip" data-value="Infantry">Infantry</button>
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <div class="setup-label">Eras</div>
+          <div class="chip-group" id="mp-era-chips">
+            <button type="button" class="chip" data-value="World War II">World War II</button>
+            <button type="button" class="chip" data-value="Cold War">Cold War</button>
+            <button type="button" class="chip" data-value="Post-Cold War">Post-Cold War</button>
+          </div>
+        </div>
+
+        <div class="setup-section" style="display: flex; gap: 12px;">
+          <div style="flex: 1;">
+            <div class="setup-label">Rounds</div>
+            <div class="radio-group">
+              <label class="radio-chip"><input type="radio" name="mp-rounds" value="5" /> 5</label>
+              <label class="radio-chip"><input type="radio" name="mp-rounds" value="10" checked /> 10</label>
+              <label class="radio-chip"><input type="radio" name="mp-rounds" value="15" /> 15</label>
+            </div>
+          </div>
+          <div style="flex: 1;">
+            <div class="setup-label">Time (sec)</div>
+            <div class="radio-group">
+              <label class="radio-chip"><input type="radio" name="mp-time" value="15" /> 15</label>
+              <label class="radio-chip"><input type="radio" name="mp-time" value="30" checked /> 30</label>
+              <label class="radio-chip"><input type="radio" name="mp-time" value="60" /> 60</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="lobby-actions" style="display: flex; gap: 10px; margin-top: 16px;">
+        <button id="lobby-leave" class="btn btn-secondary" style="flex: 1;">Leave</button>
+        <button id="lobby-ready" class="btn btn-primary" style="flex: 1;">Ready</button>
+        <button id="lobby-start" class="btn btn-primary hidden" style="flex: 1;">Start Game</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Game Over / Generic Modal -->
   <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-card">
@@ -144,7 +235,22 @@
     </div>
   </div>
 
+  <!-- Multiplayer Round / Game Result Modal -->
+  <div id="mp-result-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="mp-result-title">
+    <div class="modal-card" style="max-width: 480px;">
+      <h2 id="mp-result-title" class="modal-title">Round Over</h2>
+      <p id="mp-result-body" class="modal-body"></p>
+      <div id="mp-result-scores" class="mp-result-scores"></div>
+      <div class="btn-row" style="justify-content: center; margin-top: 14px;">
+        <button id="mp-result-action" class="btn btn-primary">Next Round</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="https://unpkg.com/paho-mqtt@1.1.0/paho-mqtt-min.js"></script>
   <script src="js/db.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/multiplayer.js"></script>
 </body>
 </html>

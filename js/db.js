@@ -2981,13 +2981,13 @@ const db = [
   },
   {
     id: 300,
-    name: "Ababil-3",
+    name: "Fotros",
     category: "Air",
-    year: 2014,
+    year: 2013,
     country: "Iran",
     difficulty: "hard",
-    image: "ababil_3.jpg",
-    aliases: ["Ababil"]
+    image: "fotros.jpg",
+    aliases: ["Iranian Fotros", "Fotros UAV"]
   },
   {
     id: 301,
