@@ -29,8 +29,7 @@
   const mpResultScores = document.getElementById("mp-result-scores");
   const mpResultAction = document.getElementById("mp-result-action");
 
-  const MQTT_BROKER = "broker.hivemq.com";
-  const MQTT_PORT = 8884;
+  const MQTT_BROKER_URL = "wss://broker.emqx.io:8084/mqtt";
   const MQTT_TOPIC_PREFIX = "military-guesser/lobby/";
   const MQTT_CLIENT_ID_PREFIX = "mg_";
 
@@ -123,8 +122,8 @@
       try { peer.destroy(); } catch (e) {}
       peer = null;
     }
-    if (mqttClient && mqttClient.isConnected()) {
-      try { mqttClient.disconnect(); } catch (e) {}
+    if (mqttClient) {
+      try { mqttClient.end(); } catch (e) {}
     }
     mqttClient = null;
     mqttHostId = null;
@@ -146,22 +145,21 @@
 
   function initMqtt(onConnect, onMessage) {
     const clientId = mqttClientId();
-    mqttClient = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, clientId);
-    mqttClient.onConnectionLost = (responseObject) => {
-      if (responseObject.errorCode !== 0) {
-        console.log("MQTT connection lost:", responseObject.errorMessage);
-      }
-    };
-    mqttClient.onMessageArrived = (message) => {
-      if (onMessage) onMessage(message.destinationName, message.payloadString);
-    };
-    mqttClient.connect({
-      useSSL: true,
-      onSuccess: () => { if (onConnect) onConnect(); },
-      onFailure: (err) => {
-        showError("Failed to connect to lobby network.");
-        console.error("MQTT connect failed:", err);
-      }
+    mqttClient = mqtt.connect(MQTT_BROKER_URL, {
+      clientId: clientId,
+      clean: true,
+      connectTimeout: 4000,
+      reconnectPeriod: 1000
+    });
+    mqttClient.on("connect", () => {
+      if (onConnect) onConnect();
+    });
+    mqttClient.on("message", (topic, message) => {
+      if (onMessage) onMessage(topic, message.toString());
+    });
+    mqttClient.on("error", (err) => {
+      console.error("MQTT error:", err);
+      showError("Lobby network error.");
     });
   }
 
@@ -175,17 +173,19 @@
 
       mqttTopic = getMqttTopic(lobbyKeyword);
 
-      // Step 1: try to discover existing host via MQTT
       initMqtt(
         () => {
-          mqttClient.subscribe(mqttTopic);
-          // Give it a moment to receive any existing host announcement
-          setTimeout(() => {
-            if (!mpLobby.classList.contains("open") && !isHost) {
-              // No host found, become host
-              becomeHost();
+          mqttClient.subscribe(mqttTopic, (err) => {
+            if (err) {
+              showError("Failed to subscribe to lobby.");
+              return;
             }
-          }, 1500);
+            setTimeout(() => {
+              if (!mpLobby.classList.contains("open") && !isHost) {
+                becomeHost();
+              }
+            }, 1500);
+          });
         },
         (topic, payload) => {
           if (topic !== mqttTopic) return;
@@ -205,7 +205,7 @@
 
   function becomeHost() {
     if (isHost || mpLobby.classList.contains("open")) return;
-    if (mqttClient && mqttClient.isConnected()) {
+    if (mqttClient && mqttClient.connected) {
       mqttClient.unsubscribe(mqttTopic);
     }
     isHost = true;
@@ -218,12 +218,8 @@
       mpSettings.rounds = 10;
       mpSettings.timeLimit = 30;
       showLobby();
-      // Announce host via MQTT
-      if (mqttClient && mqttClient.isConnected()) {
-        const announce = new Paho.MQTT.Message(JSON.stringify({ type: "host_announce", peerId: myPeerId }));
-        announce.destinationName = mqttTopic;
-        announce.retained = true;
-        mqttClient.send(announce);
+      if (mqttClient && mqttClient.connected) {
+        mqttClient.publish(mqttTopic, JSON.stringify({ type: "host_announce", peerId: myPeerId }), { qos: 1, retain: true });
       }
     });
     peer.on("error", (err) => {
@@ -275,12 +271,8 @@
   if (lobbyLeave) {
     lobbyLeave.addEventListener("click", () => {
       if (isHost) {
-        // Clear retained message
-        if (mqttClient && mqttClient.isConnected()) {
-          const clear = new Paho.MQTT.Message("");
-          clear.destinationName = mqttTopic;
-          clear.retained = true;
-          mqttClient.send(clear);
+        if (mqttClient && mqttClient.connected) {
+          mqttClient.publish(mqttTopic, "", { qos: 1, retain: true });
         }
         broadcast({ type: "host_left" });
       } else {
