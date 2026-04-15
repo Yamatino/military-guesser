@@ -1,4 +1,18 @@
 (function () {
+  // ===========================================
+  // FIREBASE CONFIG - PASTE YOUR OWN HERE
+  // ===========================================
+  const FIREBASE_CONFIG = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  // ===========================================
+
   const mainMenu = document.getElementById("main-menu");
   const btnMp = document.getElementById("btn-mp");
   const mpMenu = document.getElementById("mp-menu");
@@ -29,9 +43,7 @@
   const mpResultScores = document.getElementById("mp-result-scores");
   const mpResultAction = document.getElementById("mp-result-action");
 
-  const MQTT_BROKER_URL = "wss://broker.hivemq.com:8884/mqtt";
-  const MQTT_TOPIC_PREFIX = "military-guesser/lobby/";
-  const MQTT_CLIENT_ID_PREFIX = "mg_";
+  const LOBBY_PREFIX = "militaryGuesserLobbies/";
 
   let peer = null;
   let isHost = false;
@@ -40,9 +52,9 @@
   let lobbyKeyword = "";
   let connections = {};
   let players = {};
-  let mqttClient = null;
-  let mqttTopic = "";
-  let mqttHostId = null;
+  let dbRef = null;
+  let hostPeerId = null;
+  let unsubLobby = null;
   let mpSettings = {
     categories: new Set(),
     eras: new Set(),
@@ -57,6 +69,23 @@
   let roundTimerInterval = null;
   let roundResults = {};
   let hostRoundTimeout = null;
+
+  function initFirebase() {
+    if (typeof firebase === "undefined") {
+      showError("Firebase SDK not loaded.");
+      return false;
+    }
+    if (!firebase.apps.length) {
+      try {
+        firebase.initializeApp(FIREBASE_CONFIG);
+      } catch (e) {
+        showError("Firebase config invalid. Check your FIREBASE_CONFIG.");
+        return false;
+      }
+    }
+    dbRef = firebase.database().ref(LOBBY_PREFIX);
+    return true;
+  }
 
   function getEra(year) {
     if (year <= 1945) return "World War II";
@@ -122,11 +151,14 @@
       try { peer.destroy(); } catch (e) {}
       peer = null;
     }
-    if (mqttClient) {
-      try { mqttClient.end(); } catch (e) {}
+    if (unsubLobby) {
+      try { unsubLobby(); } catch (e) {}
+      unsubLobby = null;
     }
-    mqttClient = null;
-    mqttHostId = null;
+    if (isHost && dbRef && lobbyKeyword) {
+      dbRef.child(lobbyKeyword).remove();
+    }
+    hostPeerId = null;
     connections = {};
     players = {};
     isHost = false;
@@ -135,36 +167,8 @@
     if (window.GameAPI) window.GameAPI.enableMultiplayer(false);
   }
 
-  function mqttClientId() {
-    return MQTT_CLIENT_ID_PREFIX + Math.random().toString(36).substring(2, 10) + "_" + Date.now().toString(36);
-  }
-
-  function getMqttTopic(keyword) {
-    return MQTT_TOPIC_PREFIX + keyword.toLowerCase().replace(/[^a-z0-9]/g, "");
-  }
-
-  function initMqtt(onConnect, onMessage) {
-    const clientId = mqttClientId();
-    mqttClient = mqtt.connect(MQTT_BROKER_URL, {
-      clientId: clientId,
-      clean: true,
-      connectTimeout: 4000,
-      reconnectPeriod: 0
-    });
-    mqttClient.on("connect", () => {
-      if (onConnect) onConnect();
-    });
-    mqttClient.on("message", (topic, message) => {
-      if (onMessage) onMessage(topic, message.toString());
-    });
-    mqttClient.on("error", (err) => {
-      console.error("MQTT error:", err);
-    });
-    mqttClient.on("close", () => {
-      if (!isHost && !mpLobby.classList.contains("open")) {
-        showError("Could not connect to lobby network. Please try again.");
-      }
-    });
+  function getLobbyPath(keyword) {
+    return keyword.toLowerCase().replace(/[^a-z0-9]/g, "").substring(0, 32);
   }
 
   if (mpJoin) {
@@ -175,43 +179,29 @@
       if (!lobbyKeyword) { showError("Enter a lobby keyword."); return; }
       if (!myName) { showError("Enter your name."); return; }
 
-      mqttTopic = getMqttTopic(lobbyKeyword);
+      if (!initFirebase()) return;
+      const path = getLobbyPath(lobbyKeyword);
 
-      initMqtt(
-        () => {
-          mqttClient.subscribe(mqttTopic, (err) => {
-            if (err) {
-              showError("Failed to subscribe to lobby.");
-              return;
-            }
-            setTimeout(() => {
-              if (!mpLobby.classList.contains("open") && !isHost) {
-                becomeHost();
-              }
-            }, 1500);
-          });
-        },
-        (topic, payload) => {
-          if (topic !== mqttTopic) return;
-          try {
-            const data = JSON.parse(payload);
-            if (data.type === "host_announce" && data.peerId) {
-              mqttHostId = data.peerId;
-              if (!mpLobby.classList.contains("open")) {
-                joinAsClient(mqttHostId);
-              }
-            }
-          } catch (e) {}
+      // Try to read existing host
+      dbRef.child(path).once("value").then((snap) => {
+        const data = snap.val();
+        if (data && data.hostPeerId) {
+          // Join existing lobby
+          hostPeerId = data.hostPeerId;
+          joinAsClient(hostPeerId);
+        } else {
+          // Become host
+          becomeHost(path);
         }
-      );
+      }).catch((err) => {
+        showError("Failed to reach lobby network.");
+        console.error(err);
+      });
     });
   }
 
-  function becomeHost() {
+  function becomeHost(path) {
     if (isHost || mpLobby.classList.contains("open")) return;
-    if (mqttClient && mqttClient.connected) {
-      mqttClient.unsubscribe(mqttTopic);
-    }
     isHost = true;
     peer = new Peer();
     peer.on("open", (id) => {
@@ -222,9 +212,10 @@
       mpSettings.rounds = 10;
       mpSettings.timeLimit = 30;
       showLobby();
-      if (mqttClient && mqttClient.connected) {
-        mqttClient.publish(mqttTopic, JSON.stringify({ type: "host_announce", peerId: myPeerId }), { qos: 1, retain: true });
-      }
+      // Publish host info
+      dbRef.child(path).set({ hostPeerId: myPeerId, created: firebase.database.ServerValue.TIMESTAMP });
+      // Auto-remove when we disconnect
+      dbRef.child(path).onDisconnect().remove();
     });
     peer.on("error", (err) => {
       showError("Lobby error: " + err.type);
@@ -239,14 +230,14 @@
     });
   }
 
-  function joinAsClient(hostPeerId) {
+  function joinAsClient(hpid) {
     if (isHost || mpLobby.classList.contains("open")) return;
     peer = new Peer();
     peer.on("open", (id) => {
       myPeerId = id;
-      const conn = peer.connect(hostPeerId, { reliable: true });
+      const conn = peer.connect(hpid, { reliable: true });
       conn.on("open", () => {
-        connections[hostPeerId] = conn;
+        connections[hpid] = conn;
         conn.send({ type: "join", name: myName });
       });
       conn.on("data", (data) => handleClientMessage(data));
@@ -275,9 +266,6 @@
   if (lobbyLeave) {
     lobbyLeave.addEventListener("click", () => {
       if (isHost) {
-        if (mqttClient && mqttClient.connected) {
-          mqttClient.publish(mqttTopic, "", { qos: 1, retain: true });
-        }
         broadcast({ type: "host_left" });
       } else {
         const conn = Object.values(connections)[0];
@@ -615,7 +603,7 @@
     }
 
     if (correct) {
-      players[pid].guessedThisRound = true;
+      players[pid].guessedThisGuess = true;
       const elapsed = Math.max(0, Date.now() - roundStartTime);
       roundResults[pid] = { elapsedMs: elapsed };
       const points = calculatePoints(elapsed);
