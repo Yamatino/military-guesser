@@ -3,13 +3,13 @@
   // FIREBASE CONFIG - PASTE YOUR OWN HERE
   // ===========================================
   const FIREBASE_CONFIG = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyC2Vof647jkwdVVpdZ-yhX3hdxiY1mTnAM",
+    authDomain: "military-guesser.firebaseapp.com",
+    databaseURL: "https://military-guesser-default-rtdb.firebaseio.com",
+    projectId: "military-guesser",
+    storageBucket: "military-guesser.firebasestorage.app",
+    messagingSenderId: "127985179137",
+    appId: "1:127985179137:web:9f5e1d80a09682a082fe00"
   };
   // ===========================================
 
