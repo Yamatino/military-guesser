@@ -588,6 +588,7 @@
       if (mpStatsHeader) mpStatsHeader.classList.toggle("hidden", !enabled);
       if (livesBarEl) livesBarEl.classList.toggle("hidden", enabled);
       if (mpHud) mpHud.classList.toggle("hidden", !enabled);
+      if (enabled) setupListeners();
     },
     loadAsset(asset) {
       currentAsset = asset;
