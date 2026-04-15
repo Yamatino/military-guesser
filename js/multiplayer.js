@@ -29,7 +29,7 @@
   const mpResultScores = document.getElementById("mp-result-scores");
   const mpResultAction = document.getElementById("mp-result-action");
 
-  const MQTT_BROKER_URL = "wss://broker.emqx.io:8084/mqtt";
+  const MQTT_BROKER_URL = "wss://broker.hivemq.com:8884/mqtt";
   const MQTT_TOPIC_PREFIX = "military-guesser/lobby/";
   const MQTT_CLIENT_ID_PREFIX = "mg_";
 
@@ -149,7 +149,7 @@
       clientId: clientId,
       clean: true,
       connectTimeout: 4000,
-      reconnectPeriod: 1000
+      reconnectPeriod: 0
     });
     mqttClient.on("connect", () => {
       if (onConnect) onConnect();
@@ -159,7 +159,11 @@
     });
     mqttClient.on("error", (err) => {
       console.error("MQTT error:", err);
-      showError("Lobby network error.");
+    });
+    mqttClient.on("close", () => {
+      if (!isHost && !mpLobby.classList.contains("open")) {
+        showError("Could not connect to lobby network. Please try again.");
+      }
     });
   }
 
