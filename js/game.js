@@ -80,10 +80,9 @@
   }
 
   function getEra(year) {
-    if (year < 1950) return "Pre-1950";
-    if (year <= 1990) return "Cold War";
-    if (year <= 2010) return "Modern";
-    return "Contemporary";
+    if (year <= 1945) return "World War II";
+    if (year <= 1991) return "Cold War";
+    return "Post-Cold War";
   }
 
   function loadStats() {
