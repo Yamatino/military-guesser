@@ -627,6 +627,7 @@
       }
       if (correct) {
         addHistory(mpLastGuess, true);
+        window.dispatchEvent(new CustomEvent("mpGuessCorrect", { detail: {} }));
       } else {
         wrongCount++;
         addHistory(mpLastGuess, false);

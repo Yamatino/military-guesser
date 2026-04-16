@@ -603,7 +603,7 @@
     }
 
     if (correct) {
-      players[pid].guessedThisGuess = true;
+      players[pid].guessedThisRound = true;
       const elapsed = Math.max(0, Date.now() - roundStartTime);
       roundResults[pid] = { elapsedMs: elapsed };
       const points = calculatePoints(elapsed);
@@ -629,6 +629,7 @@
     clearTimeout(hostRoundTimeout);
     const asset = roundAssets[currentRound];
     const scoresList = Object.entries(players).map(([pid, p]) => ({
+      id: pid,
       name: p.name,
       score: p.score || 0,
       roundPoints: roundResults[pid] ? calculatePoints(roundResults[pid].elapsedMs) : 0,
@@ -651,6 +652,11 @@
   }
 
   function showRoundResult(data) {
+    if (data.scores) {
+      data.scores.forEach((s) => {
+        if (s.id && players[s.id]) players[s.id].score = s.score;
+      });
+    }
     clearInterval(roundTimerInterval);
     if (window.GameAPI) window.GameAPI.setInputDisabled(true);
     mpResultTitle.textContent = data.isLastRound ? "Game Over" : "Round Over";
@@ -726,4 +732,6 @@
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 2500);
   }
+
+  window.addEventListener("mpGuessCorrect", () => showToast("Correct!"));
 })();
