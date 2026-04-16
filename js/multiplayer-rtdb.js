@@ -651,6 +651,8 @@
     }
   }
 
+  let mpResultIsLastRound = false;
+
   function showRoundResult(data) {
     if (data.scores) {
       data.scores.forEach((s) => {
@@ -659,6 +661,7 @@
     }
     clearInterval(roundTimerInterval);
     if (window.GameAPI) window.GameAPI.setInputDisabled(true);
+    mpResultIsLastRound = !!data.isLastRound;
     mpResultTitle.textContent = data.isLastRound ? "Game Over" : "Round Over";
     mpResultBody.innerHTML = 'The correct answer was <strong>' + escapeHtml(data.correctAnswer) + '</strong>.';
     mpResultScores.innerHTML = data.scores.map((s, idx) => {
@@ -682,12 +685,11 @@
         startHostRound();
       }
     }
-    if (!isHost && gameActive) {
-      setTimeout(() => {
-        if (gameActive && !mpResultModal.classList.contains("open")) {
-          returnToLobby();
-        }
-      }, 100);
+    if (!isHost) {
+      if (mpResultIsLastRound) {
+        returnToLobby();
+      }
+      // Otherwise just wait for host's round_start
     }
   }
 
