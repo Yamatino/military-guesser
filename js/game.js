@@ -383,8 +383,8 @@
       return;
     }
     if (mpMode) {
-      if (mpCallbacks.onGuess) mpCallbacks.onGuess(selectedGuess);
       mpLastGuess = selectedGuess;
+      if (mpCallbacks.onGuess) mpCallbacks.onGuess(selectedGuess);
       guessInput.disabled = true;
       submitBtn.disabled = true;
       selectedGuess = null;
