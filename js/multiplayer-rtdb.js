@@ -397,7 +397,9 @@
         if (window.GameAPI) window.GameAPI.handleMpGuessResult(data.correct);
         break;
       case "player_guessed":
+        if (data.id && players[data.id]) players[data.id].guessedThisRound = true;
         showToast(escapeHtml(data.name) + " guessed correctly!");
+        renderScores();
         break;
       case "round_end":
         showRoundResult(data);
@@ -543,6 +545,7 @@
   function startClientRound(data) {
     currentRound = data.roundIndex;
     mpResultModal.classList.remove("open");
+    Object.keys(players).forEach((pid) => { if (players[pid]) players[pid].guessedThisRound = false; });
     const asset = db.find((x) => x.id === data.assetId);
     if (asset) loadRoundAsset(asset);
     startTimer(mpSettings.timeLimit);
@@ -608,7 +611,7 @@
       roundResults[pid] = { elapsedMs: elapsed };
       const points = calculatePoints(elapsed);
       players[pid].score = (players[pid].score || 0) + points;
-      broadcast({ type: "player_guessed", name: players[pid].name });
+      broadcast({ type: "player_guessed", id: pid, name: players[pid].name });
       renderScores();
       checkRoundEndCondition();
     }
@@ -712,12 +715,14 @@
     const list = Object.entries(players).map(([id, p]) => ({
       name: p.name.replace(" (You)", ""),
       score: p.score || 0,
-      isMe: id === myPeerId
+      isMe: id === myPeerId,
+      guessedThisRound: !!p.guessedThisRound
     })).sort((a, b) => b.score - a.score);
     list.forEach((p) => {
       const div = document.createElement("div");
       div.className = "mp-score-pill" + (p.isMe ? " me" : "");
-      div.innerHTML = '<span class="mp-score-name">' + escapeHtml(p.name) + '</span><span class="mp-score-val">' + p.score + '</span>';
+      const doneMark = p.guessedThisRound ? ' <span style="color:var(--warning);">★</span>' : "";
+      div.innerHTML = '<span class="mp-score-name">' + escapeHtml(p.name) + doneMark + '</span><span class="mp-score-val">' + p.score + '</span>';
       mpScores.appendChild(div);
     });
   }
