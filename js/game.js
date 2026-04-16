@@ -385,8 +385,6 @@
     if (mpMode) {
       mpLastGuess = selectedGuess;
       if (mpCallbacks.onGuess) mpCallbacks.onGuess(selectedGuess);
-      guessInput.disabled = true;
-      submitBtn.disabled = true;
       selectedGuess = null;
       guessInput.value = "";
       return;
@@ -628,6 +626,8 @@
       if (correct) {
         addHistory(mpLastGuess, true);
         window.dispatchEvent(new CustomEvent("mpGuessCorrect", { detail: {} }));
+        guessInput.disabled = true;
+        submitBtn.disabled = true;
       } else {
         wrongCount++;
         addHistory(mpLastGuess, false);
