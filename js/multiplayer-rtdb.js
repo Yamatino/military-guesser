@@ -69,6 +69,7 @@
   let roundTimerInterval = null;
   let roundResults = {};
   let hostRoundTimeout = null;
+  let intermissionTimer = null;
 
   function initFirebase() {
     if (typeof firebase === "undefined") {
@@ -146,6 +147,7 @@
   function cleanupAll() {
     gameActive = false;
     clearInterval(roundTimerInterval);
+    clearInterval(intermissionTimer);
     clearTimeout(hostRoundTimeout);
     if (peer) {
       try { peer.destroy(); } catch (e) {}
@@ -663,6 +665,7 @@
       });
     }
     clearInterval(roundTimerInterval);
+    clearInterval(intermissionTimer);
     if (window.GameAPI) window.GameAPI.setInputDisabled(true);
     mpResultIsLastRound = !!data.isLastRound;
     mpResultTitle.textContent = data.isLastRound ? "Game Over" : "Round Over";
@@ -671,7 +674,21 @@
       return '<div class="mp-result-row ' + (idx === 0 ? 'winner' : '') + '"><span>' + escapeHtml(s.name) + ' ' + (s.correct ? '✓' : '✗') + '</span><span><strong>' + s.score + '</strong> ' + (s.correct ? '(+' + s.roundPoints + ')' : '') + '</span></div>';
     }).join("");
     mpResultModal.classList.add("open");
-    mpResultAction.textContent = data.isLastRound ? "Back to Lobby" : "Next Round";
+    mpResultAction.disabled = true;
+
+    let countdown = 5;
+    mpResultAction.textContent = mpResultIsLastRound ? 'Returning to lobby in ' + countdown + '...' : 'Next round in ' + countdown + '...';
+
+    intermissionTimer = setInterval(() => {
+      countdown--;
+      if (countdown > 0) {
+        mpResultAction.textContent = mpResultIsLastRound ? 'Returning to lobby in ' + countdown + '...' : 'Next round in ' + countdown + '...';
+      } else {
+        clearInterval(intermissionTimer);
+        intermissionTimer = null;
+        onResultContinue();
+      }
+    }, 1000);
   }
 
   function showGameOver(data) {
@@ -699,6 +716,7 @@
   function returnToLobby() {
     gameActive = false;
     clearInterval(roundTimerInterval);
+    clearInterval(intermissionTimer);
     clearTimeout(hostRoundTimeout);
     if (window.GameAPI) window.GameAPI.enableMultiplayer(false);
     mpResultModal.classList.remove("open");
