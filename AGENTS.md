@@ -16,7 +16,7 @@
 
 ## File Structure
 - `index.html` — Main game UI.
-- `js/db.js` — Asset database (100 military assets with images, aliases, categories, years, countries, difficulty).
+- `js/db.js` — Asset database (~380 military assets with images, aliases, categories, years, countries, difficulty).
 - `js/game.js` — All game logic, event listeners, and `localStorage` persistence.
 - `css/style.css` — Styling.
 - `assets/images/` — JPG images for each asset.

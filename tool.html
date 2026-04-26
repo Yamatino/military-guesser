@@ -27,6 +27,16 @@
     .hidden { display: none !important; }
     .tag { font-size: .75rem; padding: 2px 8px; border-radius: 4px; background: var(--panel-2); color: var(--text-muted); }
     .era-tag { font-size: .7rem; padding: 1px 6px; border-radius: 4px; background: rgba(107,142,35,.15); color: var(--accent-2); margin-left: 6px; }
+    .stats-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .stats-table th, .stats-table td { padding: 8px 10px; text-align: center; border-bottom: 1px solid var(--border); }
+    .stats-table th:first-child, .stats-table td:first-child { text-align: left; }
+    .stats-table th { font-size: .75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+    .stats-table td { color: var(--text); }
+    .stats-table tr:last-child td { border-bottom: none; font-weight: 600; color: var(--accent-2); }
+    .stats-table .col-land { color: #7cb342; }
+    .stats-table .col-air { color: #64b5f6; }
+    .stats-table .col-sea { color: #4dd0e1; }
+    .stats-table .col-inf { color: #ffb74d; }
     @media (max-width: 900px) { .tool-layout { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -134,6 +144,25 @@
         </div>
       </aside>
     </main>
+
+    <section class="tool-card" style="margin-top: 16px;">
+      <h3 style="margin-bottom: 12px;">Database Status</h3>
+      <div style="overflow-x: auto;">
+        <table class="stats-table" id="stats-table">
+          <thead>
+            <tr>
+              <th>Country</th>
+              <th>Total</th>
+              <th class="col-land">Land</th>
+              <th class="col-air">Air</th>
+              <th class="col-sea">Sea</th>
+              <th class="col-inf">Infantry</th>
+            </tr>
+          </thead>
+          <tbody id="stats-body"></tbody>
+        </table>
+      </div>
+    </section>
   </div>
 
   <script src="js/db.js"></script>
@@ -218,6 +247,59 @@
       return 'Contemporary';
     }
 
+    function renderStats() {
+      const statsBody = document.getElementById('stats-body');
+      if (!statsBody) return;
+
+      const byCountry = {};
+      workingDb.forEach(item => {
+        if (!byCountry[item.country]) {
+          byCountry[item.country] = { total: 0, Land: 0, Air: 0, Sea: 0, Infantry: 0 };
+        }
+        byCountry[item.country].total++;
+        byCountry[item.country][item.category]++;
+      });
+
+      const rows = Object.entries(byCountry)
+        .sort((a, b) => a[1].total - b[1].total);
+
+      let html = '';
+      rows.forEach(([country, counts]) => {
+        html += `
+          <tr>
+            <td>${escapeHtml(country)}</td>
+            <td>${counts.total}</td>
+            <td class="col-land">${counts.Land}</td>
+            <td class="col-air">${counts.Air}</td>
+            <td class="col-sea">${counts.Sea}</td>
+            <td class="col-inf">${counts.Infantry}</td>
+          </tr>
+        `;
+      });
+
+      const totals = rows.reduce((acc, [, c]) => {
+        acc.total += c.total;
+        acc.Land += c.Land;
+        acc.Air += c.Air;
+        acc.Sea += c.Sea;
+        acc.Infantry += c.Infantry;
+        return acc;
+      }, { total: 0, Land: 0, Air: 0, Sea: 0, Infantry: 0 });
+
+      html += `
+        <tr>
+          <td>Total</td>
+          <td>${totals.total}</td>
+          <td class="col-land">${totals.Land}</td>
+          <td class="col-air">${totals.Air}</td>
+          <td class="col-sea">${totals.Sea}</td>
+          <td class="col-inf">${totals.Infantry}</td>
+        </tr>
+      `;
+
+      statsBody.innerHTML = html;
+    }
+
     async function scan() {
       missingAssets = [];
       readyAssets = [];
@@ -239,6 +321,7 @@
       missingCountEl.textContent = missingAssets.length;
       currentIndex = 0;
       renderLists(listSearch.value);
+      renderStats();
       renderWizard();
     }
 

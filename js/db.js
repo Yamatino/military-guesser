@@ -3489,4 +3489,284 @@ const db = [
     image: "talwar_class.jpg",
     aliases: ["Talwar", "Project 11356"]
   },
+  {
+    id: 351,
+    name: "TAM",
+    category: "Land",
+    year: 1979,
+    country: "Argentina",
+    difficulty: "medium",
+    image: "tam.jpg",
+    aliases: ["Tanque Argentino Mediano"]
+  },
+  {
+    id: 352,
+    name: "IA-58 Pucará",
+    category: "Air",
+    year: 1969,
+    country: "Argentina",
+    difficulty: "medium",
+    image: "ia58_pucara.jpg",
+    aliases: ["Pucará", "FMA IA-58"]
+  },
+  {
+    id: 353,
+    name: "IA-63 Pampa",
+    category: "Air",
+    year: 1988,
+    country: "Argentina",
+    difficulty: "hard",
+    image: "ia63_pampa.jpg",
+    aliases: ["Pampa", "FMA IA-63"]
+  },
+  {
+    id: 354,
+    name: "ARA General Belgrano",
+    category: "Sea",
+    year: 1951,
+    country: "Argentina",
+    difficulty: "medium",
+    image: "ara_general_belgrano.jpg",
+    aliases: ["General Belgrano", "ARA Belgrano"]
+  },
+  {
+    id: 355,
+    name: "Su-25 Frogfoot",
+    category: "Air",
+    year: 1981,
+    country: "Russia",
+    difficulty: "medium",
+    image: "su25_frogfoot.jpg",
+    aliases: ["Su-25", "Frogfoot"]
+  },
+  {
+    id: 356,
+    name: "MiG-31 Foxhound",
+    category: "Air",
+    year: 1981,
+    country: "Russia",
+    difficulty: "medium",
+    image: "mig31_foxhound.jpg",
+    aliases: ["MiG-31", "Foxhound"]
+  },
+  {
+    id: 357,
+    name: "Su-24 Fencer",
+    category: "Air",
+    year: 1974,
+    country: "Russia",
+    difficulty: "medium",
+    image: "su24_fencer.jpg",
+    aliases: ["Su-24", "Fencer"]
+  },
+  {
+    id: 358,
+    name: "Tu-22M Backfire",
+    category: "Air",
+    year: 1972,
+    country: "Russia",
+    difficulty: "medium",
+    image: "tu22m_backfire.jpg",
+    aliases: ["Tu-22M", "Backfire"]
+  },
+  {
+    id: 359,
+    name: "An-225 Mriya",
+    category: "Air",
+    year: 1988,
+    country: "Russia",
+    difficulty: "easy",
+    image: "an225_mriya.jpg",
+    aliases: ["Mriya", "Antonov An-225"]
+  },
+  {
+    id: 360,
+    name: "An-124 Ruslan",
+    category: "Air",
+    year: 1986,
+    country: "Russia",
+    difficulty: "medium",
+    image: "an124_ruslan.jpg",
+    aliases: ["Ruslan", "Antonov An-124"]
+  },
+  {
+    id: 361,
+    name: "Mi-26 Halo",
+    category: "Air",
+    year: 1983,
+    country: "Russia",
+    difficulty: "medium",
+    image: "mi26_halo.jpg",
+    aliases: ["Halo", "Mi-26"]
+  },
+  {
+    id: 362,
+    name: "Su-30 Flanker-C",
+    category: "Air",
+    year: 1996,
+    country: "Russia",
+    difficulty: "medium",
+    image: "su30_flanker_c.jpg",
+    aliases: ["Su-30", "Flanker-C"]
+  },
+  {
+    id: 363,
+    name: "Su-34 Fullback",
+    category: "Air",
+    year: 2014,
+    country: "Russia",
+    difficulty: "medium",
+    image: "su34_fullback.jpg",
+    aliases: ["Su-34", "Fullback"]
+  },
+  {
+    id: 364,
+    name: "Ka-50 Black Shark",
+    category: "Air",
+    year: 1995,
+    country: "Russia",
+    difficulty: "medium",
+    image: "ka50_black_shark.jpg",
+    aliases: ["Black Shark", "Ka-50"]
+  },
+  {
+    id: 365,
+    name: "Yak-38 Forger",
+    category: "Air",
+    year: 1976,
+    country: "Russia",
+    difficulty: "hard",
+    image: "yak38_forger.jpg",
+    aliases: ["Yak-38", "Forger"]
+  },
+  {
+    id: 366,
+    name: "Tu-16 Badger",
+    category: "Air",
+    year: 1954,
+    country: "Russia",
+    difficulty: "medium",
+    image: "tu16_badger.jpg",
+    aliases: ["Tu-16", "Badger"]
+  },
+  {
+    id: 367,
+    name: "JF-17 Thunder",
+    category: "Air",
+    year: 2007,
+    country: "Pakistan",
+    difficulty: "medium",
+    image: "jf17_thunder.jpg",
+    aliases: ["JF-17", "Thunder"]
+  },
+  {
+    id: 368,
+    name: "MOWAG Piranha",
+    category: "Land",
+    year: 1972,
+    country: "Switzerland",
+    difficulty: "medium",
+    image: "mowag_piranha.jpg",
+    aliases: ["Piranha"]
+  },
+  {
+    id: 369,
+    name: "L-39 Albatros",
+    category: "Air",
+    year: 1968,
+    country: "Czech Republic",
+    difficulty: "medium",
+    image: "l39_albatros.jpg",
+    aliases: ["L-39", "Albatros"]
+  },
+  {
+    id: 370,
+    name: "HAL Tejas",
+    category: "Air",
+    year: 2015,
+    country: "India",
+    difficulty: "medium",
+    image: "hal_tejas.jpg",
+    aliases: ["Tejas", "LCA"]
+  },
+  {
+    id: 371,
+    name: "Glock 17",
+    category: "Infantry",
+    year: 1982,
+    country: "Austria",
+    difficulty: "easy",
+    image: "glock_17.jpg",
+    aliases: ["Glock", "G17"]
+  },
+  {
+    id: 372,
+    name: "Saab 35 Draken",
+    category: "Air",
+    year: 1960,
+    country: "Sweden",
+    difficulty: "medium",
+    image: "saab35_draken.jpg",
+    aliases: ["Draken", "J 35"]
+  },
+  {
+    id: 373,
+    name: "Mirage III",
+    category: "Air",
+    year: 1961,
+    country: "France",
+    difficulty: "medium",
+    image: "mirage_iii.jpg",
+    aliases: ["Mirage 3"]
+  },
+  {
+    id: 374,
+    name: "KAI FA-50",
+    category: "Air",
+    year: 2010,
+    country: "South Korea",
+    difficulty: "medium",
+    image: "kai_fa50.jpg",
+    aliases: ["FA-50", "Golden Eagle"]
+  },
+  {
+    id: 375,
+    name: "Bionix AFV",
+    category: "Land",
+    year: 1997,
+    country: "Singapore",
+    difficulty: "hard",
+    image: "bionix_afv.jpg",
+    aliases: ["Bionix"]
+  },
+  {
+    id: 376,
+    name: "HESA Saeqeh",
+    category: "Air",
+    year: 2006,
+    country: "Iran",
+    difficulty: "hard",
+    image: "hesa_saeqeh.jpg",
+    aliases: ["Saeqeh"]
+  },
+  {
+    id: 377,
+    name: "ASCOD AFV",
+    category: "Land",
+    year: 2002,
+    country: "Spain",
+    difficulty: "hard",
+    image: "ascod_afv.jpg",
+    aliases: ["ASCOD"]
+  },
+  {
+    id: 378,
+    name: "AMOS mortar system",
+    category: "Land",
+    year: 2013,
+    country: "Finland",
+    difficulty: "hard",
+    image: "amos_mortar_system.jpg",
+    aliases: ["AMOS"]
+  }
 ];
