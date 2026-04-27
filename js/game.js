@@ -252,7 +252,11 @@
   function loadImageObfuscated(url) {
     return new Promise((resolve) => {
       assetImage.removeAttribute("src");
-      assetImage.onload = () => resolve();
+      assetImage.setAttribute("loading-state", "");
+      assetImage.onload = () => {
+        assetImage.removeAttribute("loading-state");
+        resolve();
+      };
       assetImage.onerror = () => {
         assetImage.src = url;
         assetImage.onload = () => resolve();
@@ -451,7 +455,10 @@
       saveCategoryBests(cats);
     }
 
-    if (settings.hiddenMode) assetImage.style.filter = "none";
+    if (settings.hiddenMode) {
+      assetImage.style.filter = "none";
+      addRevealFlash();
+    }
     loadNextItem();
   }
 
@@ -476,7 +483,10 @@
     assetImage.parentElement.classList.add("loss-fade");
     setTimeout(() => assetImage.parentElement.classList.remove("loss-fade"), 500);
 
-    if (settings.hiddenMode) assetImage.style.filter = "none";
+    if (settings.hiddenMode) {
+      assetImage.style.filter = "none";
+      addRevealFlash();
+    }
 
     streak = 0;
     streakEl.textContent = streak;
@@ -560,19 +570,10 @@
     `).join("");
   }
 
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-4px); }
-      75% { transform: translateX(4px); }
-    }
-    .shake {
-      animation: shake 0.25s ease-in-out 2;
-      border-color: var(--danger) !important;
-    }
-  `;
-  document.head.appendChild(style);
+  function addRevealFlash() {
+    assetImage.style.animation = "revealFlash 0.6s ease-out";
+    setTimeout(() => { assetImage.style.animation = ""; }, 600);
+  }
 
   window.GameAPI = {
     enableMultiplayer(enabled, callbacks) {
