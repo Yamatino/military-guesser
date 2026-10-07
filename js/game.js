@@ -26,6 +26,7 @@
   const btnLeaderboard = document.getElementById("btn-leaderboard");
   const mainMenu = document.getElementById("main-menu");
   const btnSp = document.getElementById("btn-sp");
+  const setupBack = document.getElementById("setup-back");
   const lbModal = document.getElementById("leaderboard-modal");
   const lbClose = document.getElementById("lb-close");
   const lbTabs = document.querySelectorAll(".lb-tab");
@@ -56,6 +57,8 @@
   let mpMode = false;
   let mpCallbacks = {};
   let mpLastGuess = null;
+  let imageLoadToken = 0;
+  let currentObjectUrl = null;
 
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -90,8 +93,16 @@
     return "Post-Cold War";
   }
 
+  function readJSON(key, fallback) {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
   function loadStats() {
-    const s = JSON.parse(localStorage.getItem(STATS_KEY) || "{}") || {};
+    const s = readJSON(STATS_KEY, {});
     return { totalGuesses: s.totalGuesses || 0, firstCorrect: s.firstCorrect || 0 };
   }
 
@@ -106,7 +117,7 @@
   }
 
   function loadLeaderboard() {
-    return JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || "[]") || [];
+    return readJSON(LEADERBOARD_KEY, []);
   }
 
   function saveLeaderboard(list) {
@@ -114,7 +125,7 @@
   }
 
   function loadCategoryBests() {
-    return JSON.parse(localStorage.getItem(CATEGORY_BESTS_KEY) || "{}") || {};
+    return readJSON(CATEGORY_BESTS_KEY, {});
   }
 
   function saveCategoryBests(obj) {
@@ -126,6 +137,7 @@
     highScoreEl.textContent = highScore;
     updateAccuracy();
     attachSetupListeners();
+    setupListeners();
     modalAction.addEventListener("click", onModalAction);
     modalMenu.addEventListener("click", returnToMenu);
     btnLeaderboard.addEventListener("click", openLeaderboard);
@@ -136,6 +148,12 @@
         mainMenu.classList.remove("open");
         setup.classList.add("open");
         validateSetup();
+      });
+    }
+    if (setupBack && mainMenu) {
+      setupBack.addEventListener("click", () => {
+        setup.classList.remove("open");
+        mainMenu.classList.add("open");
       });
     }
     document.addEventListener("click", (e) => {
@@ -211,7 +229,6 @@
     setup.classList.remove("open");
     guessInput.disabled = false;
     submitBtn.disabled = false;
-    setupListeners();
     loadNextItem();
   }
 
@@ -249,24 +266,30 @@
     assetImage.style.filter = settings.hiddenMode ? `blur(${BLURS[pixelLevel]}px)` : "none";
   }
 
+  // Loads via fetch + blob URL so the filename (which gives away the answer)
+  // never appears in the DOM. The token discards stale loads when a new asset
+  // is requested before the previous image finished downloading.
   function loadImageObfuscated(url) {
+    const token = ++imageLoadToken;
     return new Promise((resolve) => {
-      assetImage.removeAttribute("src");
-      assetImage.setAttribute("loading-state", "");
-      assetImage.onload = () => {
-        assetImage.removeAttribute("loading-state");
+      const done = () => {
+        if (token === imageLoadToken) assetImage.removeAttribute("loading-state");
         resolve();
       };
-      assetImage.onerror = () => {
-        assetImage.src = url;
-        assetImage.onload = () => resolve();
-      };
+      assetImage.removeAttribute("src");
+      assetImage.setAttribute("loading-state", "");
+      assetImage.onload = done;
+      assetImage.onerror = done;
       fetch(url)
         .then((r) => (r.ok ? r.blob() : Promise.reject()))
         .then((blob) => {
-          assetImage.src = URL.createObjectURL(blob);
+          if (token !== imageLoadToken) return resolve();
+          if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+          currentObjectUrl = URL.createObjectURL(blob);
+          assetImage.src = currentObjectUrl;
         })
         .catch(() => {
+          if (token !== imageLoadToken) return resolve();
           assetImage.src = url;
         });
     });
@@ -587,7 +610,6 @@
       if (mpStatsHeader) mpStatsHeader.classList.toggle("hidden", !enabled);
       if (livesBarEl) livesBarEl.classList.toggle("hidden", enabled);
       if (mpHud) mpHud.classList.toggle("hidden", !enabled);
-      if (enabled) setupListeners();
     },
     loadAsset(asset) {
       currentAsset = asset;
@@ -617,6 +639,9 @@
     },
     clearHistory() {
       historyEl.innerHTML = "";
+    },
+    preloadAsset(asset) {
+      fetch(IMAGE_BASE_PATH + asset.image).then((r) => r.blob()).catch(() => {});
     },
     handleMpGuessResult(correct) {
       if (!mpLastGuess) {

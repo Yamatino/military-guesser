@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=20261007" />
 </head>
 <body>
   <div class="app">
@@ -127,7 +127,10 @@
 
       <div id="setup-warning" class="setup-warning hidden"></div>
 
-      <button id="start-btn" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Start Game</button>
+      <div style="display: flex; gap: 10px; margin-top: 8px;">
+        <button id="setup-back" class="btn btn-secondary" style="flex: 1;">Back</button>
+        <button id="start-btn" class="btn btn-primary" style="flex: 2;">Start Game</button>
+      </div>
     </div>
   </div>
 
@@ -156,6 +159,7 @@
     <div class="setup-card" style="max-width: 560px;">
       <h2 class="setup-title">Lobby <span id="lobby-keyword-display" style="opacity: .7; font-size: .7em;"></span></h2>
       <div id="lobby-players" class="lobby-players"></div>
+      <div id="lobby-settings-summary" class="hidden" style="margin-top: 12px; text-align: center; opacity: .75; font-size: .9rem;"></div>
 
       <div id="host-settings" class="hidden">
         <div class="setup-section" style="margin-top: 12px;">
@@ -256,8 +260,8 @@
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-  <script src="js/db.js"></script>
-  <script src="js/game.js"></script>
-  <script src="js/multiplayer-rtdb.js"></script>
+  <script src="js/db.js?v=20261007"></script>
+  <script src="js/game.js?v=20261007"></script>
+  <script src="js/multiplayer-rtdb.js?v=20261007"></script>
 </body>
 </html>

@@ -1,0 +1,16 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "militaryGuesserLobbies": {
+      "$lobby": {
+        ".read": true,
+        ".write": true,
+        ".validate": "$lobby.matches(/^[a-z0-9]{1,32}$/) && newData.hasChildren(['hostPeerId', 'created'])",
+        "hostPeerId": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 64" },
+        "created": { ".validate": "newData.isNumber() && newData.val() <= now" },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}
