@@ -231,9 +231,15 @@ body::before {
 #streak.stat-value { color: var(--accent-2); }
 #high-score.stat-value { color: var(--text); }
 
-#btn-leaderboard {
+#btn-leaderboard,
+#btn-menu {
   padding: 10px 16px;
   font-size: 0.9rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
 }
 
 /* ---------- Game area ---------- */
@@ -1291,10 +1297,15 @@ body::before {
     font-size: 1.3rem;
   }
 
-  #btn-leaderboard {
+  #btn-leaderboard,
+  #btn-menu {
     padding: 8px 12px;
     font-size: 0.82rem;
     align-self: center;
+  }
+
+  .header-actions {
+    gap: 6px;
   }
 
   .mp-stats {
@@ -1341,5 +1352,173 @@ body::before {
     top: 8px;
     left: 8px;
     font-size: 0.74rem;
+  }
+}
+
+/* ---------- Hint extras ---------- */
+
+.hint-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hint-flag {
+  width: 20px;
+  height: 15px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.hint-mask {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  letter-spacing: 0.12em;
+  white-space: pre;
+}
+
+.history-note {
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.history-note strong {
+  color: var(--accent-2);
+}
+
+.life.hidden {
+  display: none;
+}
+
+/* ---------- Daily Challenge ---------- */
+
+.btn-daily {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.btn-sub {
+  font-size: 0.74rem;
+  font-weight: 500;
+  opacity: 0.75;
+  letter-spacing: 0.02em;
+}
+
+.btn-sub:empty {
+  display: none;
+}
+
+.daily-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  margin-right: 4px;
+}
+
+.daily-pips {
+  display: flex;
+  gap: 6px;
+}
+
+.daily-pip {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: rgba(235, 225, 200, 0.1);
+  border: 1px solid var(--border-hover);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.daily-pip.current {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.daily-pip.tier-first { background: var(--success); border-color: var(--success); }
+.daily-pip.tier-mid { background: var(--warning); border-color: var(--warning); }
+.daily-pip.tier-late { background: var(--cat-infantry); border-color: var(--cat-infantry); }
+.daily-pip.tier-missed { background: var(--danger); border-color: var(--danger); }
+
+/* Shown over the main menu when today's challenge is already done. */
+.modal.daily-modal {
+  z-index: 3500;
+}
+
+.daily-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.daily-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.daily-row-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.daily-row-detail {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.daily-stats {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.daily-stats .stat {
+  flex: 1;
+  min-width: 0;
+}
+
+.daily-next {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-bottom: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lb-note {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .daily-hud {
+    margin-left: 0;
+    flex: 1;
+    align-items: flex-start;
+  }
+
+  .daily-stats .stat {
+    padding: 2px 4px;
+  }
+
+  .daily-pip {
+    width: 14px;
+    height: 14px;
   }
 }

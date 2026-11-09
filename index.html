@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261008" />
+  <link rel="stylesheet" href="css/style.css?v=20261108" />
 </head>
 <body>
   <div class="app">
@@ -30,10 +30,17 @@
           <span id="accuracy" class="stat-value">0%</span>
         </div>
       </div>
+      <div class="daily-hud hidden" id="daily-hud">
+        <span class="stat-label">Daily <span id="daily-hud-num"></span></span>
+        <div class="daily-pips" id="daily-pips" aria-label="Daily progress"></div>
+      </div>
       <div class="mp-stats hidden" id="mp-stats-header">
         <div class="mp-round">Round <span id="mp-round-num">1</span> / <span id="mp-round-total">10</span></div>
       </div>
-      <button id="btn-leaderboard" class="btn btn-secondary">Leaderboard</button>
+      <div class="header-actions">
+        <button id="btn-menu" class="btn btn-secondary">Menu</button>
+        <button id="btn-leaderboard" class="btn btn-secondary">Leaderboard</button>
+      </div>
     </header>
 
     <main class="game">
@@ -80,7 +87,11 @@
     <div class="setup-card menu-card">
       <h2 class="setup-title">Military Asset Guesser</h2>
       <p class="menu-tagline">Identify tanks, aircraft, warships and small arms from a single photo.</p>
-      <button id="btn-sp" class="btn btn-primary">Single Player</button>
+      <button id="btn-daily" class="btn btn-primary btn-daily">
+        Daily Challenge
+        <span class="btn-sub" id="daily-menu-status"></span>
+      </button>
+      <button id="btn-sp" class="btn btn-secondary">Single Player</button>
       <button id="btn-mp" class="btn btn-secondary">Multiplayer</button>
     </div>
   </div>
@@ -222,6 +233,21 @@
     </div>
   </div>
 
+  <!-- Daily Challenge Result Modal -->
+  <div id="daily-modal" class="modal daily-modal" role="dialog" aria-modal="true" aria-labelledby="daily-title">
+    <div class="modal-card" style="max-width: 460px;">
+      <h2 id="daily-title" class="modal-title">Daily</h2>
+      <p id="daily-body" class="modal-body"></p>
+      <div id="daily-grid" class="daily-grid"></div>
+      <div id="daily-stats" class="daily-stats"></div>
+      <div id="daily-next" class="daily-next"></div>
+      <div class="btn-row">
+        <button id="daily-share" class="btn btn-primary">Share Result</button>
+        <button id="daily-menu" class="btn btn-secondary">Menu</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Leaderboard Modal -->
   <div id="leaderboard-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="lb-title">
     <div class="modal-card" style="max-width: 520px;">
@@ -238,6 +264,7 @@
 
       <div id="lb-cats" class="lb-panel hidden">
         <div id="lb-cat-grid" class="lb-cat-grid"></div>
+        <p class="lb-note">Best streak in a run limited to that one category.</p>
       </div>
 
       <div class="btn-row" style="justify-content: center; margin-top: 18px;">
@@ -262,7 +289,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="js/db.js?v=20261008"></script>
-  <script src="js/game.js?v=20261008"></script>
+  <script src="js/game.js?v=20261108"></script>
   <script src="js/multiplayer-rtdb.js?v=20261008"></script>
 </body>
 </html>
